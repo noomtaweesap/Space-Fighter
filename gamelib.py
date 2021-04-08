@@ -72,14 +72,14 @@ class Text(GameCanvasElement):
 
     def init_canvas_object(self):
         self.canvas_object_id = self.canvas.create_text(
-            self.x, 
+            self.x,
             self.y,
             text=self.text)
 
     def set_text(self, text):
         self.text = text
         self.canvas.itemconfigure(self.canvas_object_id, text=text)
-        
+
 
 class Sprite(GameCanvasElement):
     def __init__(self, game_app, image_filename, x=0, y=0):
@@ -89,35 +89,42 @@ class Sprite(GameCanvasElement):
     def init_canvas_object(self):
         self.photo_image = tk.PhotoImage(file=self.image_filename)
         self.canvas_object_id = self.canvas.create_image(
-            self.x, 
+            self.x,
             self.y,
             image=self.photo_image)
 
 
-class GameApp(ttk.Frame): 
+class GameApp(ttk.Frame):
     def __init__(self, parent, canvas_width=800, canvas_height=500, update_delay=33):
         super().__init__(parent)
         self.parent = parent
-        
+
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
-        
+
         self.update_delay = update_delay
 
         self.grid(sticky="news")
         self.create_canvas()
 
         self.elements = []
-        self.init_game()
 
         self.is_stopped = False
 
         self.parent.bind('<KeyPress>', self.on_key_pressed)
         self.parent.bind('<KeyRelease>', self.on_key_released)
-        
+
+        self.key_pressed_handler = KeyboardHandler()
+        self.key_released_handler = KeyboardHandler()
+
+        self.init_game()
+
+
+
+
     def create_canvas(self):
         self.canvas = tk.Canvas(self, borderwidth=0,
-            width=self.canvas_width, height=self.canvas_height, 
+            width=self.canvas_width, height=self.canvas_height,
             highlightthickness=0)
         self.canvas.grid(sticky="news")
 
@@ -160,8 +167,16 @@ class GameApp(ttk.Frame):
     def post_update(self):
         pass
 
-    def on_key_pressed(self, event):
-        pass
-
     def on_key_released(self, event):
-        pass
+        self.key_released_handler.handle(event)
+
+    def on_key_pressed(self, event):
+        self.key_pressed_handler.handle(event)
+
+class KeyboardHandler:
+    def __init__(self, successor=None):
+        self.successor = successor
+
+    def handle(self, event):
+        if self.successor:
+            self.successor.handle(event)
